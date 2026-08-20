@@ -42,7 +42,7 @@ export class FilmsService {
     const items: ScheduleDto[] = film.schedule.map((session) => ({
       id: session.id,
       daytime: new Date(session.daytime).toISOString(),
-      hall: String(session.hall),
+      hall: session.hall,
       rows: session.rows,
       seats: session.seats,
       price: session.price,
