@@ -34,7 +34,8 @@ export interface IFilmsRepository {
 
   findById(id: string): Promise<FilmEntity | null>;
 
-  // NotFoundException — фильм/сеанс не найден; BadRequestException — место занято
+  // бросает FilmNotFoundError / ScheduleNotFoundError / SeatsAlreadyTakenError
+  // (см. repository.errors.ts) — маппинг в HTTP делает сервис
   bookSeats(
     filmId: string,
     scheduleId: string,

@@ -7,19 +7,6 @@ import { FilmsTypeormRepository } from './typeorm/films-typeorm.repository';
 import { Film } from './typeorm/entities/film.entity';
 import { Schedule } from './typeorm/entities/schedule.entity';
 
-function parseDatabaseUrl(url: string): {
-  host: string;
-  port: number;
-  database: string;
-} {
-  const parsed = new URL(url);
-  return {
-    host: parsed.hostname,
-    port: parsed.port ? Number(parsed.port) : 5432,
-    database: decodeURIComponent(parsed.pathname.replace(/^\//, '')),
-  };
-}
-
 @Global()
 @Module({})
 export class RepositoryModule {
@@ -42,7 +29,9 @@ export class RepositoryModule {
           inject: [CONFIG],
           useFactory: (config: AppConfig) => ({
             type: 'postgres',
-            ...parseDatabaseUrl(config.database.url),
+            host: config.database.host,
+            port: config.database.port,
+            database: config.database.name,
             username: config.database.username,
             password: config.database.password,
             entities: [Film, Schedule],

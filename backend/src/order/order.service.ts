@@ -5,6 +5,11 @@ import {
   IFilmsRepository,
 } from '../repository/films-repository.interface';
 import {
+  FilmNotFoundError,
+  ScheduleNotFoundError,
+  SeatsAlreadyTakenError,
+} from '../repository/repository.errors';
+import {
   CreateOrderDto,
   OrderResponseDto,
   OrderResultDto,
@@ -76,11 +81,22 @@ export class OrderService {
 
     for (const group of groups.values()) {
       const seats = group.tickets.map((t) => ({ row: t.row, seat: t.seat }));
-      await this.filmsRepository.bookSeats(
-        group.filmId,
-        group.scheduleId,
-        seats,
-      );
+      try {
+        await this.filmsRepository.bookSeats(
+          group.filmId,
+          group.scheduleId,
+          seats,
+        );
+      } catch (error) {
+        if (
+          error instanceof FilmNotFoundError ||
+          error instanceof ScheduleNotFoundError ||
+          error instanceof SeatsAlreadyTakenError
+        ) {
+          throw new BadRequestException(error.message);
+        }
+        throw error;
+      }
     }
 
     const items: OrderResultDto[] = dto.tickets.map((ticket) => ({

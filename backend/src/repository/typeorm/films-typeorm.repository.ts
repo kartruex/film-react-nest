@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import {
@@ -11,6 +7,11 @@ import {
   ScheduleEntity,
   SeatCoordinate,
 } from '../films-repository.interface';
+import {
+  FilmNotFoundError,
+  ScheduleNotFoundError,
+  SeatsAlreadyTakenError,
+} from '../repository.errors';
 import { Film } from './entities/film.entity';
 import { Schedule } from './entities/schedule.entity';
 
@@ -43,7 +44,7 @@ export class FilmsTypeormRepository implements IFilmsRepository {
     return this.dataSource.transaction(async (manager) => {
       const film = await manager.findOne(Film, { where: { id: filmId } });
       if (!film) {
-        throw new NotFoundException(`Фильм с id "${filmId}" не найден`);
+        throw new FilmNotFoundError(filmId);
       }
 
       const schedule = await manager.findOne(Schedule, {
@@ -51,30 +52,19 @@ export class FilmsTypeormRepository implements IFilmsRepository {
         lock: { mode: 'pessimistic_write' },
       });
       if (!schedule || schedule.filmId !== filmId) {
-        throw new NotFoundException(
-          `Сеанс с id "${scheduleId}" у фильма "${filmId}" не найден`,
-        );
+        throw new ScheduleNotFoundError(scheduleId, filmId);
       }
 
-      const taken = this.parseTaken(schedule.taken);
-      const busy = seatKeys.filter((key) => taken.includes(key));
+      const busy = seatKeys.filter((key) => schedule.taken.includes(key));
       if (busy.length > 0) {
-        throw new BadRequestException(`Места уже заняты: ${busy.join(', ')}`);
+        throw new SeatsAlreadyTakenError(busy);
       }
 
-      schedule.taken = [...taken, ...seatKeys].join(',');
+      schedule.taken = [...schedule.taken, ...seatKeys];
       await manager.save(Schedule, schedule);
 
       return this.toScheduleEntity(schedule);
     });
-  }
-
-  private parseTaken(value: string): string[] {
-    return value ? value.split(',').filter(Boolean) : [];
-  }
-
-  private parseTags(value: string): string[] {
-    return value ? value.split(',').map((tag) => tag.trim()) : [];
   }
 
   private toScheduleEntity(schedule: Schedule): ScheduleEntity {
@@ -85,7 +75,7 @@ export class FilmsTypeormRepository implements IFilmsRepository {
       rows: schedule.rows,
       seats: schedule.seats,
       price: schedule.price,
-      taken: this.parseTaken(schedule.taken),
+      taken: schedule.taken,
     };
   }
 
@@ -94,7 +84,7 @@ export class FilmsTypeormRepository implements IFilmsRepository {
       id: film.id,
       rating: film.rating,
       director: film.director,
-      tags: this.parseTags(film.tags),
+      tags: film.tags,
       title: film.title,
       about: film.about,
       description: film.description,

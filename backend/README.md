@@ -16,8 +16,8 @@ cp .env.example .env
 - `DATABASE_DRIVER` — `postgres` (по умолчанию) или `memory` (данные из
   `src/repository/in-memory/films.seed.json`, без подключения к БД — удобно
   для быстрого запуска и e2e-тестов).
-- `DATABASE_URL` — строка подключения к PostgreSQL,
-  например `postgres://localhost:5432/films`.
+- `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME` — хост, порт и имя базы
+  PostgreSQL (по умолчанию `localhost`, `5432`, `films`).
 - `DATABASE_USERNAME`, `DATABASE_PASSWORD` — логин и пароль пользователя БД.
 
 ## PostgreSQL

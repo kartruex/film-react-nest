@@ -12,9 +12,9 @@ export class Film {
   @Column({ type: 'varchar' })
   director: string;
 
-  // теги одной строкой через запятую — формат стартовых SQL-данных
-  @Column({ type: 'text' })
-  tags: string;
+  // хранится в колонке text как "a,b,c", наружу отдаётся массивом строк
+  @Column({ type: 'simple-array' })
+  tags: string[];
 
   @Column({ type: 'varchar' })
   image: string;

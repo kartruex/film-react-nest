@@ -27,9 +27,9 @@ export class Schedule {
   @Column({ type: 'float' })
   price: number;
 
-  // занятые места одной строкой "1:2,3:4" — формат стартовых SQL-данных
-  @Column({ type: 'text' })
-  taken: string;
+  // хранится в колонке text как "1:2,3:4", наружу отдаётся массивом строк
+  @Column({ type: 'simple-array' })
+  taken: string[];
 
   @Column({ type: 'uuid', nullable: true })
   filmId: string;

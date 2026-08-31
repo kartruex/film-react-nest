@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {
@@ -12,6 +7,11 @@ import {
   ScheduleEntity,
   SeatCoordinate,
 } from '../films-repository.interface';
+import {
+  FilmNotFoundError,
+  ScheduleNotFoundError,
+  SeatsAlreadyTakenError,
+} from '../repository.errors';
 
 @Injectable()
 export class FilmsInMemoryRepository implements IFilmsRepository {
@@ -54,22 +54,18 @@ export class FilmsInMemoryRepository implements IFilmsRepository {
   ): Promise<ScheduleEntity> {
     const film = this.films.find((f) => f.id === filmId);
     if (!film) {
-      throw new NotFoundException(`Фильм с id "${filmId}" не найден`);
+      throw new FilmNotFoundError(filmId);
     }
 
     const schedule = film.schedule.find((s) => s.id === scheduleId);
     if (!schedule) {
-      throw new NotFoundException(
-        `Сеанс с id "${scheduleId}" у фильма "${filmId}" не найден`,
-      );
+      throw new ScheduleNotFoundError(scheduleId, filmId);
     }
 
     const keys = seats.map((s) => `${s.row}:${s.seat}`);
     const alreadyTaken = keys.filter((key) => schedule.taken.includes(key));
     if (alreadyTaken.length > 0) {
-      throw new BadRequestException(
-        `Места уже заняты: ${alreadyTaken.join(', ')}`,
-      );
+      throw new SeatsAlreadyTakenError(alreadyTaken);
     }
 
     // без await между проверкой и записью — гонка состояний исключена
