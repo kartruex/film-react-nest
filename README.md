@@ -1,36 +1,44 @@
 # FILM!
 
-## Установка
+Онлайн-сервис бронирования билетов в кинотеатр. Фронтенд на React, бэкенд на
+NestJS. Данные о фильмах, сеансах и бронированиях хранятся в PostgreSQL
+(доступ через TypeORM).
 
-### MongoDB
+## PostgreSQL
 
-Установите MongoDB скачав дистрибутив с официального сайта или с помощью пакетного менеджера вашей ОС. Также можно воспользоваться Docker (см. ветку `feat/docker`).
+Проще всего поднять базу через Docker:
 
-Выполните скрипт `test/mongodb_initial_stub.js` в консоли `mongo`.
+```bash
+docker-compose up -d
+docker exec -i postgres_container psql -U postgres -d films < backend/test/prac.init.sql
+docker exec -i postgres_container psql -U postgres -d films < backend/test/prac.films.sql
+docker exec -i postgres_container psql -U postgres -d films < backend/test/prac.shedules.sql
+```
 
-### Бэкенд
+Либо установите PostgreSQL локально, создайте пользователя и базу и выполните
+те же SQL-файлы из `backend/test`.
 
-Перейдите в папку с исходным кодом бэкенда
+## Бэкенд
 
-`cd backend`
+```bash
+cd backend
+npm ci
+cp .env.example .env   # при необходимости поправьте значения
+npm run start:dev
+```
 
-Установите зависимости (точно такие же, как в package-lock.json) помощью команд
+Переменные окружения (`backend/.env`):
 
-`npm ci` или `yarn install --frozen-lockfile`
+- `DATABASE_DRIVER` — `postgres` (или `memory` для запуска без БД, данные из
+  `src/repository/in-memory/films.seed.json` — используется в e2e-тестах).
+- `DATABASE_URL` — строка подключения к PostgreSQL,
+  например `postgres://localhost:5432/films`.
+- `DATABASE_USERNAME`, `DATABASE_PASSWORD` — логин и пароль пользователя БД.
 
-Создайте `.env` файл из примера `.env.example`, в нём укажите:
+## Фронтенд
 
-* `DATABASE_DRIVER` - тип драйвера СУБД - в нашем случае это `mongodb` 
-* `DATABASE_URL` - адрес СУБД MongoDB, например `mongodb://127.0.0.1:27017/practicum`.  
-
-MongoDB должна быть установлена и запущена.
-
-Запустите бэкенд:
-
-`npm start:debug`
-
-Для проверки отправьте тестовый запрос с помощью Postman или `curl`.
-
-
-
-
+```bash
+cd frontend
+npm ci
+npm run dev
+```
