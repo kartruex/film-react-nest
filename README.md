@@ -1,36 +1,88 @@
 # FILM!
 
-## Установка
+Онлайн-сервис бронирования билетов в кинотеатр. Фронтенд на React, бэкенд на
+NestJS. Данные о фильмах, сеансах и бронированиях хранятся в PostgreSQL
+(доступ через TypeORM).
 
-### MongoDB
+**Задеплоенное приложение: http://158.160.193.153/**
+(домен пока не привязан — ссылка будет обновлена на доменную после привязки
+`domain.nomoreparties.site`)
 
-Установите MongoDB скачав дистрибутив с официального сайта или с помощью пакетного менеджера вашей ОС. Также можно воспользоваться Docker (см. ветку `feat/docker`).
+## PostgreSQL
 
-Выполните скрипт `test/mongodb_initial_stub.js` в консоли `mongo`.
+Проще всего поднять базу через Docker:
 
-### Бэкенд
+```bash
+docker-compose up -d
+docker exec -i postgres_container psql -U postgres -d films < backend/test/prac.init.sql
+docker exec -i postgres_container psql -U postgres -d films < backend/test/prac.films.sql
+docker exec -i postgres_container psql -U postgres -d films < backend/test/prac.shedules.sql
+```
 
-Перейдите в папку с исходным кодом бэкенда
+Либо установите PostgreSQL локально, создайте пользователя и базу и выполните
+те же SQL-файлы из `backend/test`.
 
-`cd backend`
+## Бэкенд
 
-Установите зависимости (точно такие же, как в package-lock.json) помощью команд
+```bash
+cd backend
+npm ci
+cp .env.example .env   # при необходимости поправьте значения
+npm run start:dev
+```
 
-`npm ci` или `yarn install --frozen-lockfile`
+Переменные окружения (`backend/.env`):
 
-Создайте `.env` файл из примера `.env.example`, в нём укажите:
+- `DATABASE_DRIVER` — `postgres` (или `memory` для запуска без БД, данные из
+  `src/repository/in-memory/films.seed.json` — используется в e2e-тестах).
+- `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME` — хост, порт и имя базы
+  PostgreSQL (по умолчанию `localhost`, `5432`, `films`).
+- `DATABASE_USERNAME`, `DATABASE_PASSWORD` — логин и пароль пользователя БД.
 
-* `DATABASE_DRIVER` - тип драйвера СУБД - в нашем случае это `mongodb` 
-* `DATABASE_URL` - адрес СУБД MongoDB, например `mongodb://127.0.0.1:27017/practicum`.  
+## Фронтенд
 
-MongoDB должна быть установлена и запущена.
+```bash
+cd frontend
+npm ci
+npm run dev
+```
 
-Запустите бэкенд:
+## Логирование
 
-`npm start:debug`
+Бэкенд поддерживает три логгера, выбор — через переменную окружения
+`LOG_FORMAT` (`backend/.env`):
 
-Для проверки отправьте тестовый запрос с помощью Postman или `curl`.
+- `dev` (по умолчанию) — цветной консольный вывод Nest (`DevLogger`).
+- `json` — построчный JSON (`JsonLogger`).
+- `tskv` — формат Tab-Separated Key-Value (`TskvLogger`).
 
+## Деплой
 
+Проект докеризирован: `backend/Dockerfile`, `frontend/Dockerfile`,
+`nginx/Dockerfile` (multi-stage, в финальных образах нет исходников и
+dev-зависимостей). Все сервисы описаны в корневом `docker-compose.yml`
+(`backend`, `frontend`, `nginx`, `db` — PostgreSQL, `pgadmin`).
 
+Локальный запуск:
 
+```bash
+cp .env.example .env   # при необходимости поправьте значения
+docker compose up -d --build
+```
+
+После запуска доступны:
+- `http://localhost` — приложение (фронтенд + API через nginx);
+- `http://localhost:8080` — pgAdmin (для наполнения БД см. раздел
+  «PostgreSQL» выше, файлы — в `backend/test`).
+
+При пуше в `main` GitHub Actions (`.github/workflows/docker-publish.yml`)
+собирает и публикует образы `backend`, `frontend`, `nginx` в
+`ghcr.io/kartruex/film-react-nest-*`. На сервере используется тот же
+`docker-compose.yml`, но без сборки — образы просто спулливаются:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+Задеплоенное приложение: http://158.160.193.153/ (pgAdmin — на порту 8080).
