@@ -42,3 +42,44 @@ cd frontend
 npm ci
 npm run dev
 ```
+
+## Логирование
+
+Бэкенд поддерживает три логгера, выбор — через переменную окружения
+`LOG_FORMAT` (`backend/.env`):
+
+- `dev` (по умолчанию) — цветной консольный вывод Nest (`DevLogger`).
+- `json` — построчный JSON (`JsonLogger`).
+- `tskv` — формат Tab-Separated Key-Value (`TskvLogger`).
+
+## Деплой
+
+Проект докеризирован: `backend/Dockerfile`, `frontend/Dockerfile`,
+`nginx/Dockerfile` (multi-stage, в финальных образах нет исходников и
+dev-зависимостей). Все сервисы описаны в корневом `docker-compose.yml`
+(`backend`, `frontend`, `nginx`, `db` — PostgreSQL, `pgadmin`).
+
+Локальный запуск:
+
+```bash
+cp .env.example .env   # при необходимости поправьте значения
+docker compose up -d --build
+```
+
+После запуска доступны:
+- `http://localhost` — приложение (фронтенд + API через nginx);
+- `http://localhost:8080` — pgAdmin (для наполнения БД см. раздел
+  «PostgreSQL» выше, файлы — в `backend/test`).
+
+При пуше в `main` GitHub Actions (`.github/workflows/docker-publish.yml`)
+собирает и публикует образы `backend`, `frontend`, `nginx` в
+`ghcr.io/kartruex/film-react-nest-*`. На сервере используется тот же
+`docker-compose.yml`, но без сборки — образы просто спулливаются:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+Задеплоенное приложение: _ссылка появится после привязки домена
+(`domain.nomoreparties.site`) к серверу_.
