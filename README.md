@@ -1,3 +1,15 @@
+# FILM! – cinema booking service
+
+Full-stack cinema booking app built in the Yandex Practicum program with an AI coding assistant and approved through code review.
+
+- **Backend:** NestJS REST API for films, schedules and seat orders, PostgreSQL via TypeORM, pessimistic locking to prevent double booking
+- **Architecture:** repository layer returns domain errors, services map them to HTTP responses
+- **Logging:** switchable dev / JSON / TSKV formats
+- **Infrastructure:** Docker Compose (backend, frontend, nginx, PostgreSQL), GitHub Actions builds images to GHCR and deploys over SSH
+- **Tests:** unit and e2e
+
+Подробная документация на русском ниже.
+
 # FILM!
 
 Онлайн-сервис бронирования билетов в кинотеатр. Фронтенд на React, бэкенд на
