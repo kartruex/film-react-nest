@@ -16,9 +16,7 @@ Full-stack cinema booking app built in the Yandex Practicum program with an AI c
 NestJS. Данные о фильмах, сеансах и бронированиях хранятся в PostgreSQL
 (доступ через TypeORM).
 
-**Задеплоенное приложение: http://158.160.193.153/**
-(домен пока не привязан — ссылка будет обновлена на доменную после привязки
-`domain.nomoreparties.site`)
+**Задеплоенное приложение:** учебный деплой, сервер отключён
 
 ## PostgreSQL
 
