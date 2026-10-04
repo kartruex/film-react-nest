@@ -23,7 +23,7 @@ import { OrderModule } from './order/order.module';
       rootPath: path.join(__dirname, '..', 'public'),
       renderPath: '/__never__',
     }),
-    RepositoryModule.forRoot(process.env.DATABASE_DRIVER ?? 'mongodb'),
+    RepositoryModule.forRoot(process.env.DATABASE_DRIVER ?? 'postgres'),
     FilmsModule,
     OrderModule,
   ],

@@ -2,6 +2,7 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   FILMS_REPOSITORY,
   IFilmsRepository,
+  ScheduleEntity,
 } from '../repository/films-repository.interface';
 import {
   FilmDto,
@@ -29,6 +30,7 @@ export class FilmsService {
       description: film.description,
       image: film.image,
       cover: film.cover,
+      schedule: film.schedule.map((session) => this.toScheduleDto(session)),
     }));
     return { total: items.length, items };
   }
@@ -39,7 +41,12 @@ export class FilmsService {
       throw new NotFoundException(`Фильм с id "${filmId}" не найден`);
     }
 
-    const items: ScheduleDto[] = film.schedule.map((session) => ({
+    const items = film.schedule.map((session) => this.toScheduleDto(session));
+    return { total: items.length, items };
+  }
+
+  private toScheduleDto(session: ScheduleEntity): ScheduleDto {
+    return {
       id: session.id,
       daytime: new Date(session.daytime).toISOString(),
       hall: session.hall,
@@ -47,7 +54,6 @@ export class FilmsService {
       seats: session.seats,
       price: session.price,
       taken: session.taken,
-    }));
-    return { total: items.length, items };
+    };
   }
 }
